@@ -4,7 +4,8 @@ import java.net.*;
 public class JoinReceive extends Thread {
 
     static int PORT  = 12000;
-    static InetAddress HOST; 
+    static InetAddress HOST;
+    static int HASH = 256; 
     private Peer peer;
 
     public JoinReceive(Peer peer) {
@@ -38,30 +39,57 @@ public class JoinReceive extends Thread {
                     int num = Integer.parseInt(peernum);
 
                     //decide whether join request should be forwarded or handled by this peer
-                    if (num > peer.get_peerid() && num > peer.get_firstsucc()) {
-                        System.out.println(clientSentence);
-                        JoinPing joinsender = new JoinPing(peer.get_firstsucc(), num);
-                        joinsender.start();
+                    if ((num > peer.get_peerid() && num > peer.get_firstsucc()) && peer.get_peerid() > peer.get_firstsucc()) {
+                        newsucc(peer.get_firstsucc(), peer.get_secondsucc(), num, 1);
+                        newsucc(peer.get_peerid(), num, peer.get_firstpred(), 0);
+                        changeSucc(peer, num, peer.get_firstsucc());
+                        System.out.println("Peer " + Integer.toString(num) + " Join request received");
+                        System.out.println("My new first successor is Peer " + Integer.toString(peer.get_firstsucc()));
+                        System.out.println("My new second successor is Peer " + Integer.toString(peer.get_secondsucc()));
                     }
+                    
                     else if (num > peer.get_peerid() && num < peer.get_firstsucc())  {
                         newsucc(peer.get_firstsucc(), peer.get_secondsucc(), num, 1);
                         newsucc(peer.get_peerid(), num, peer.get_firstpred(), 0);
-                        changeSucc(peer, num, peer.get_secondsucc());
+                        changeSucc(peer, num, peer.get_firstsucc());
                         System.out.println("Peer " + Integer.toString(num) + " Join request received");
+                        System.out.println("My new first successor is Peer " + Integer.toString(peer.get_firstsucc()));
+                        System.out.println("My new second successor is Peer " + Integer.toString(peer.get_secondsucc()));  
 
                     }
-                    else if (num > peer.get_peerid() && num > peer.get_firstsucc() && peer.get_peerid() > peer.get_firstsucc()) {
-                        newsucc(peer.get_firstsucc(), peer.get_secondsucc(), num, 1);
-                        newsucc(peer.get_peerid(), num, peer.get_firstpred(), 0);
-                        changeSucc(peer, num, peer.get_secondsucc());
-                        System.out.println("Peer " + Integer.toString(num) + " Join request received");
+                    else if (num > peer.get_peerid() && num > peer.get_firstsucc()) {
+                        System.out.println(clientSentence);
+                        JoinPing joinsender = new JoinPing();
+                        String message = "Peer " + Integer.toString(num) + " Join request forwarded to my successor";
+                        joinsender.sendTCP(peer.get_firstsucc(), message);
+                    }
+
+                }
+                else if(clientSentence.contains("Store")) {
+                    String filenum = clientSentence.replaceAll("\\D+", "");
+                    int fileHash = Integer.parseInt(filenum) % HASH;
+                    
+                    if((fileHash > peer.get_peerid() && fileHash < peer.get_firstsucc()) || fileHash == peer.get_peerid()) {
+                        System.out.println("Store " + filenum + " request accepted");
+                        peer.add_files(filenum);
+                        System.out.println(peer.get_files().get(0));
+                    }
+                    else if((fileHash > peer.get_peerid() && fileHash > peer.get_firstsucc()) && peer.get_peerid() > peer.get_firstsucc()) {
+                        System.out.println("Store " + filenum + " request accepted");
+                        peer.add_files(filenum);
+                        System.out.println(peer.get_files().get(0));
+                    }
+                    else if(fileHash > peer.get_peerid() && fileHash >= peer.get_firstsucc()) {
+                        System.out.println(clientSentence);
+                        JoinPing joinsender = new JoinPing();
+                        joinsender.sendTCP(peer.get_firstsucc(), clientSentence);
                     }
                 }
                 //process successor change requests
                 else if (clientSentence.contains("requesting your successors")) {
                     String peernum = clientSentence.replaceAll("\\D+", "");
-                    int num = Integer.parseInt(peernum);
-                    newsucc(peer.get_firstsucc(), peer.get_secondsucc(), num, 2);
+                    int replyPeer = Integer.parseInt(peernum);
+                    newsucc(peer.get_firstsucc(), peer.get_secondsucc(), replyPeer, 2);
 
                 }
                 else if (clientSentence.contains("Peer no longer alive")) {

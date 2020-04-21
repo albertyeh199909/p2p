@@ -6,23 +6,16 @@ import java.util.concurrent.locks.*;
 
 
 // for sending and forwarding join request
-public class JoinPing extends Thread{
+public class JoinPing {
 
     static int PORT  = 12000;
-    static Socket socket = null;
     static int timeBeforeRetry = 5000;//milliseconds
     static InetAddress HOST; 
-    private int succ1;
-    private int peerid;
-
-    public JoinPing (int succ1, int peerid) {
-        this.succ1 = succ1;
-        this.peerid = peerid;
-    }
+    
     //sends join requests
-    public void run () {
-
-        int port1 = PORT + succ1;
+    public void sendTCP (int receiver, String message) {
+        Socket socket = null;
+        int port1 = PORT + receiver;
         try {
             HOST = InetAddress.getByName("127.0.0.1");
             //https://stackoverflow.com/questions/47834435/better-way-to-handle-connection-refused-when-server-is-down
@@ -44,7 +37,7 @@ public class JoinPing extends Thread{
                 }
 
             }    
-                String sentence= "Peer " + Integer.toString(peerid) + " Join request forwarded to my successor";
+                String sentence= message;
                 DataOutputStream outToPeer = new DataOutputStream(socket.getOutputStream());
                 outToPeer.writeBytes(sentence + '\n');
                 socket.close();

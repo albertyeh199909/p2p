@@ -12,4 +12,9 @@ xterm -hold -title "Peer 14" -e "java p2p init 14 19 1 10" &
 
 xterm -hold -title "Peer 19" -e "java p2p init 19 1 4 10" & 
 
+#sleep 20s
+
+#xterm -hold -title "Peer 15" -e "java p2p join 15 4 10" & 
+
+
 

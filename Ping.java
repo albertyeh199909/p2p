@@ -52,10 +52,11 @@ public class Ping extends Thread{
                     System.out.println("Send Packet");
                 }
                 System.out.println("Ping requests sent to Peers " + peer.get_firstsucc() +  " and " + peer.get_secondsucc());
-            //sleep for UPDATE_INTERVAL
-                
+
+                // when first successor have not responded
                 if(peer.get_firstalive() == false) {
                     peer.set_packetLoss1(peer.get_packetLoss1() + 1);
+                    //decides peer is dead when packetloss is over threshold
                     if (peer.get_packetLoss1() >= permittedLoss) {
                         int receiver = peer.get_secondsucc();
                         System.out.println("Peer " + Integer.toString(peer.get_firstsucc()) + " is no longer alive");
@@ -64,8 +65,10 @@ public class Ping extends Thread{
                         peer.set_packetLoss1(0);
                     }
                 }
+                // when second succesor have not responded
                 if(peer.get_secondalive() == false) {
                     peer.set_packetLoss2(peer.get_packetLoss2() + 1);
+                    //decides peer is dead when packetloss is over threshold
                     if (peer.get_packetLoss2() >= permittedLoss) {
                         System.out.println("Peer " + Integer.toString(peer.get_secondsucc()) + " is no longer alive");
                         firstsucc_request(peer.get_peerid(), peer.get_firstsucc());
@@ -88,6 +91,7 @@ public class Ping extends Thread{
             System.out.println(e);
         }
     } //run ends
+    //request first successor for abrupt peer departure
     public void firstsucc_request(int peerid, int receiver) {
         Socket socket = null;
         int port = PORT + receiver;

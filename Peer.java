@@ -1,4 +1,5 @@
 //package assignment1;
+import java.util.ArrayList;
 public class Peer {
         private int peerid;
         private int firstsucc;
@@ -10,6 +11,7 @@ public class Peer {
         private boolean secondalive;
         private int packetLoss1;
         private int packetLoss2;
+        private ArrayList<String> files = new ArrayList<String>();
 
         public Peer (int peerid, int firstsucc, int secondsucc, int ping) {
             this.peerid = peerid;
@@ -64,6 +66,10 @@ public class Peer {
             return this.packetLoss2;
         }
 
+        public ArrayList get_files() {
+            return this.files;
+        }
+
         public void set_peerid (int peerid) {
             this.peerid = peerid;
         }
@@ -102,6 +108,10 @@ public class Peer {
 
         public void set_packetLoss2 (int packetLoss2) {
             this.packetLoss2 = packetLoss2;
+        }
+
+        public void add_files(String filename) {
+            this.files.add(filename);
         }
 
 

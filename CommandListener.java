@@ -7,7 +7,9 @@ public class CommandListener extends Thread{
     static int PORT  = 12000;
     static int timeBeforeRetry = 1000;//milliseconds
     static InetAddress HOST; 
-    static String quit = "Quit";
+    static int HASH = 256;
+    static String QUIT = "Quit";
+    static String STORE = "Store";
     private String input = "";
     Peer peer;
     public CommandListener(Peer peer) {
@@ -23,14 +25,29 @@ public class CommandListener extends Thread{
         while (true) {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             input = in.readLine();
-            System.out.println(input);
-            if (input.equals(quit)) {
+            if (input.equals(QUIT)) {
                 //System.out.println(quit);
                 sendQuit (peer.get_firstpred(), peer.get_peerid(), peer.get_firstsucc(), peer.get_secondsucc() );
                 System.out.println(Integer.toString(peer.get_secondpred()));
                 sendQuit (peer.get_secondpred(), peer.get_peerid(), peer.get_firstpred(), peer.get_firstsucc());
                 System.out.println("EXITING");
                 System.exit(0);
+            }
+            else if(input.contains(STORE)) {
+                String num = input.replaceAll("\\D+", "");
+                int filenum = Integer.parseInt(num);
+                int hash = filenum % HASH;
+                if (hash == peer.get_peerid() || (hash > peer.get_firstpred() && hash < peer.get_peerid()) || (hash > peer.get_peerid() && hash < peer.get_firstsucc())) {
+                    System.out.println("Store " + num+ " request accepted");
+                    peer.add_files(num);
+                }
+                else {
+                    JoinPing fileRequest = new JoinPing();
+                    String message = "Store " + num + " request forwarded to my successor";
+                    System.out.println(message);
+                    fileRequest.sendTCP(peer.get_firstsucc(), message);
+                }
+
             }
             //in.close();
         }

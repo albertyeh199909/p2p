@@ -25,8 +25,9 @@ public class p2p extends Thread{
             peer = new Peer(Integer.parseInt(args[1]), Integer.parseInt(args[3]));
             JoinReceive joinlistener = new JoinReceive(peer);
             joinlistener.start();
-            JoinPing joinsender = new JoinPing(Integer.parseInt(args[2]), Integer.parseInt(args[1]));
-            joinsender.start();
+            JoinPing joinsender = new JoinPing();
+            String message = "Peer " + args[1] + " Join request forwarded to my successor";
+            joinsender.sendTCP(Integer.parseInt(args[2]), message);
             //joinlistener.send(Integer.parseInt(args[2]), Integer.parseInt(args[1]));
             
         }
